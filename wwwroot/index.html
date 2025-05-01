@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tweeter</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <aside class="sidebar left">
+      <div class="logo">🐦 Tweeter</div>
+      <nav>
+        <button class="nav-btn active" data-view="home">Home</button>
+        <button class="nav-btn" data-view="explore">Explore</button>
+        <button class="nav-btn" data-view="notifications">Notifs</button>
+        <button class="nav-btn" data-view="messages">Messages</button>
+        <button class="nav-btn" data-view="profile">Profile</button>
+      </nav>
+      <button id="composeBtn" class="primary full">Post</button>
+    </aside>
+
+    <main class="timeline" id="timeline">
+      <header class="timeline-header">
+        <h1 id="viewTitle">Home</h1>
+      </header>
+      <section id="composer" class="composer hidden">
+        <textarea id="composerText" maxlength="280" placeholder="What's flappening?" autofocus></textarea>
+        <div class="composer-footer">
+          <span id="charCount">280</span>
+          <button id="sendBtn" class="primary" disabled>Chirp</button>
+        </div>
+      </section>
+      <ul id="feed" class="feed"></ul>
+    </main>
+
+    <aside class="sidebar right">
+      <div class="card trends">
+        <h2>Trends for you</h2>
+        <ul id="trends"></ul>
+      </div>
+      <div class="card who-to-follow">
+        <h2>Who to follow</h2>
+        <ul id="whoToFollow"></ul>
+      </div>
+    </aside>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <button id="closeModal" class="close" aria-label="Close">✕</button>
+      <h2>Compose Chirp</h2>
+      <textarea id="modalComposerText" maxlength="280" placeholder="Share something witty..." autofocus></textarea>
+      <div class="composer-footer">
+        <span id="modalCharCount">280</span>
+        <button id="modalSendBtn" class="primary" disabled>Chirp</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js" type="module"></script>
+</body>
+</html>

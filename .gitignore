@@ -1,0 +1,21 @@
+# .NET build artifacts
+bin/
+obj/
+
+# User specific
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Mac / OS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Others
+Thumbs.db
