@@ -1,19 +1,11 @@
 const state = {
   feed: [],
-  trends: [
-    { tag: '#DotNet9', count: 1234 },
-    { tag: '#AI', count: 987 },
-    { tag: '#CSharp', count: 654 },
-    { tag: '#TweeterClone', count: 420 },
-  ],
-  whoToFollow: [
-    { name: 'Ada Lovelace', handle: 'ada', followed: false },
-    { name: 'Linus Torvalds', handle: 'linus', followed: false },
-    { name: 'Grace Hopper', handle: 'grace', followed: false },
-  ]
+  trends: [],
+  whoToFollow: [],
+  currentUser: null
 };
 
-let nextId = 1;
+const API_BASE = '/api';
 
 function el(tag, props = {}, ...children) {
   const e = document.createElement(tag);
@@ -43,10 +35,21 @@ function formatTime(d){
   return d.toLocaleDateString();
 }
 
+async function loadFeed(){
+  try {
+    const response = await fetch(`${API_BASE}/posts`);
+    if (response.ok) {
+      state.feed = await response.json();
+      renderFeed();
+    }
+  } catch (error) {
+    console.error('Failed to load feed:', error);
+  }
+}
+
 function renderFeed(){
   const feed = document.getElementById('feed');
   feed.innerHTML = '';
-  state.feed.sort((a,b)=>b.created - a.created);
   state.feed.forEach(item => feed.appendChild(renderItem(item)));
 }
 
@@ -56,17 +59,17 @@ function renderItem(item){
     el('span', { class: 'name' }, item.author.name),
     el('span', { class: 'handle' }, '@'+item.author.handle),
     item.author.verified ? el('span', { class: 'badge' }, 'VIP') : null,
-    el('span', { class: 'handle' }, '· '+formatTime(item.created))
+    el('span', { class: 'handle' }, '· '+formatTime(new Date(item.created)))
   );
   const text = el('div', { class: 'text' }, item.text);
   const actions = el('div', { class: 'actions' },
-    actionBtn('💬', item.replies.length, () => replyTo(item.id)),
+    actionBtn('💬', item.replies?.length || 0, () => replyTo(item.id)),
     actionBtn('🔁', item.reposts, (e)=> toggleRepost(item, e), item.reposted, 'reposted'),
     actionBtn('❤️', item.likes, (e)=> toggleLike(item, e), item.liked, 'liked'),
     actionBtn('📤', '', ()=> shareItem(item))
   );
   const meta = el('div', { class: 'meta' }, item.id < 5 ? 'Top chirp' : 'ID '+item.id);
-  const replies = item.replies.length ? el('div', { class:'replies' }, ...item.replies.map(r=>renderItem(r))) : null;
+  const replies = item.replies?.length ? el('div', { class:'replies' }, ...item.replies.map(r=>renderItem(r))) : null;
   const content = el('div', { class: 'content' }, header, text, actions, meta, replies);
   return el('li', { class: 'feed-item', 'data-id': item.id }, avatar, content);
 }
@@ -81,45 +84,110 @@ function replyTo(id){
   openModal('@'+parent.author.handle+' ');
 }
 
-function toggleLike(item, btn){
-  item.liked = !item.liked;
-  item.likes += item.liked ? 1 : -1;
-  renderFeed();
+async function toggleLike(item, btn){
+  if (!state.currentUser) return;
+  
+  try {
+    const response = await fetch(`${API_BASE}/posts/${item.id}/like`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ userId: state.currentUser.id })
+    });
+    
+    if (response.ok) {
+      item.liked = !item.liked;
+      item.likes += item.liked ? 1 : -1;
+      renderFeed();
+    }
+  } catch (error) {
+    console.error('Failed to toggle like:', error);
+  }
 }
-function toggleRepost(item){
-  item.reposted = !item.reposted;
-  item.reposts += item.reposted ? 1 : -1;
-  renderFeed();
+
+async function toggleRepost(item){
+  if (!state.currentUser) return;
+  
+  try {
+    const response = await fetch(`${API_BASE}/posts/${item.id}/repost`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ userId: state.currentUser.id })
+    });
+    
+    if (response.ok) {
+      item.reposted = !item.reposted;
+      item.reposts += item.reposted ? 1 : -1;
+      renderFeed();
+    }
+  } catch (error) {
+    console.error('Failed to toggle repost:', error);
+  }
 }
 function shareItem(item){
   navigator.clipboard?.writeText(location.origin+'/?id='+item.id);
   alert('Link copied');
 }
 
-function addPost(text){
-  const author = currentUser();
-  state.feed.push({
-    id: nextId++,
-    text,
-    author,
-    created: new Date(),
-    likes: 0,
-    reposts: 0,
-    replies: [],
-    liked:false,
-    reposted:false
-  });
-  renderFeed();
+async function addPost(text){
+  if (!state.currentUser) return;
+  
+  try {
+    const response = await fetch(`${API_BASE}/posts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        text: text.trim(), 
+        userId: state.currentUser.id 
+      })
+    });
+    
+    if (response.ok) {
+      await loadFeed();
+    }
+  } catch (error) {
+    console.error('Failed to create post:', error);
+  }
 }
 
-function currentUser(){
-  return { name: 'Demo User', handle: 'demo', verified: true };
+async function loadCurrentUser(){
+  try {
+    const response = await fetch(`${API_BASE}/users/current`);
+    if (response.ok) {
+      state.currentUser = await response.json();
+    }
+  } catch (error) {
+    console.error('Failed to load current user:', error);
+  }
 }
 
-function seed(){
-  addPost('Welcome to Tweeter – a totally original microblogging platform.');
-  addPost('Hot take: Semicolons are just punctuation privilege.');
-  addPost('This timeline intentionally left blank.');
+async function loadTrends(){
+  try {
+    const response = await fetch(`${API_BASE}/trending`);
+    if (response.ok) {
+      state.trends = await response.json();
+      renderTrends();
+    }
+  } catch (error) {
+    console.error('Failed to load trends:', error);
+  }
+}
+
+async function loadWhoToFollow(){
+  try {
+    const response = await fetch(`${API_BASE}/users/suggestions`);
+    if (response.ok) {
+      state.whoToFollow = await response.json();
+      renderWhoToFollow();
+    }
+  } catch (error) {
+    console.error('Failed to load user suggestions:', error);
+  }
 }
 
 function renderTrends(){
@@ -200,7 +268,11 @@ navBtns.forEach(b=> b.addEventListener('click', ()=> {
   document.getElementById('viewTitle').textContent = b.textContent || b.dataset.view;
 }));
 
-seed();
-renderFeed();
-renderTrends();
-renderWhoToFollow();
+async function initializeApp() {
+  await loadCurrentUser();
+  await loadFeed();
+  await loadTrends();
+  await loadWhoToFollow();
+}
+
+initializeApp();
