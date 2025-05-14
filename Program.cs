@@ -3,9 +3,9 @@ using Tweeter.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add EF Core with In-Memory database
+// Add EF Core with SQLite database (supports raw SQL for injection demo)
 builder.Services.AddDbContext<TweeterContext>(options =>
-    options.UseInMemoryDatabase("TweeterDb"));
+    options.UseSqlite("Data Source=tweeter.db"));
 
 // Add MVC services
 builder.Services.AddControllersWithViews();

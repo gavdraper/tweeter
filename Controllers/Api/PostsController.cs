@@ -29,7 +29,7 @@ public class PostsController : ControllerBase
             .Include(p => p.Replies)
             .OrderByDescending(p => p.Created)
             .ToListAsync();
-        
+
         var result = posts.Select(p => new
         {
             p.Id,
@@ -58,40 +58,39 @@ public class PostsController : ControllerBase
         {
             return BadRequest("Post text is required and must be 280 characters or less");
         }
+        var sql = $"INSERT INTO Posts (Text, AuthorId, Created) VALUES ('{request.Text}', {request.UserId}, '{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}')";
 
-        var user = await _context.Users.FindAsync(request.UserId);
-        if (user == null)
+        try
         {
-            return BadRequest("User not found");
-        }
+            await _context.Database.ExecuteSqlRawAsync(sql);
 
-        var post = new Post
-        {
-            Text = request.Text.Trim(),
-            AuthorId = request.UserId,
-            ParentId = request.ParentId,
-            Created = DateTime.UtcNow
-        };
+            // Get the created post - also vulnerable to injection
+            var getPostSql = $"SELECT * FROM Posts WHERE AuthorId = {request.UserId} ORDER BY Created DESC LIMIT 1";
+            var posts = await _context.Posts.FromSqlRaw(getPostSql).Include(p => p.Author).ToListAsync();
+            var post = posts.FirstOrDefault();
 
-        _context.Posts.Add(post);
-        await _context.SaveChangesAsync();
-
-        await _context.Entry(post)
-            .Reference(p => p.Author)
-            .LoadAsync();
-
-        return CreatedAtAction(nameof(GetPost), new { id = post.Id }, new
-        {
-            post.Id,
-            post.Text,
-            Author = new
+            if (post == null)
             {
-                post.Author.Name,
-                post.Author.Handle,
-                post.Author.Verified
-            },
-            post.Created
-        });
+                return BadRequest("Failed to create post");
+            }
+
+            return CreatedAtAction(nameof(GetPost), new { id = post.Id }, new
+            {
+                post.Id,
+                post.Text,
+                Author = new
+                {
+                    post.Author.Name,
+                    post.Author.Handle,
+                    post.Author.Verified
+                },
+                post.Created
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Database error: {ex.Message}");
+        }
     }
 
     [HttpGet("{id}")]
