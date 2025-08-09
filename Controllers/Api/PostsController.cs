@@ -21,14 +21,14 @@ public class PostsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<object>>> GetPosts()
     {
-        var posts = await _context.Posts
+        var posts = _context.Posts
             .Where(p => p.ParentId == null)
             .Include(p => p.Author)
             .Include(p => p.Likes)
             .Include(p => p.Reposts)
             .Include(p => p.Replies)
             .OrderByDescending(p => p.Created)
-            .ToListAsync();
+            .ToListAsync().Result;
 
         var result = posts.Select(p => new
         {
