@@ -9,7 +9,7 @@ const API_BASE = '/api';
 
 function el(tag, props = {}, ...children) {
   const e = document.createElement(tag);
-  Object.entries(props).forEach(([k,v]) => {
+  Object.entries(props).forEach(([k, v]) => {
     if (k === 'class') e.className = v;
     else if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.substring(2).toLowerCase(), v);
     else if (k === 'html') e.innerHTML = v;
@@ -23,19 +23,19 @@ function el(tag, props = {}, ...children) {
   return e;
 }
 
-function initials(name){
-  return name.split(/\s+/).map(p=>p[0]).join('').substring(0,2).toUpperCase();
+function initials(name) {
+  return name.split(/\s+/).map(p => p[0]).join('').substring(0, 2).toUpperCase();
 }
 
-function formatTime(d){
-  const diff = (Date.now() - d.getTime())/1000;
-  if(diff < 60) return Math.floor(diff)+'s';
-  if(diff < 3600) return Math.floor(diff/60)+'m';
-  if(diff < 86400) return Math.floor(diff/3600)+'h';
+function formatTime(d) {
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 60) return Math.floor(diff) + 's';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h';
   return d.toLocaleDateString();
 }
 
-async function loadFeed(){
+async function loadFeed() {
   try {
     const response = await fetch(`${API_BASE}/posts`);
     if (response.ok) {
@@ -47,46 +47,46 @@ async function loadFeed(){
   }
 }
 
-function renderFeed(){
+function renderFeed() {
   const feed = document.getElementById('feed');
   feed.innerHTML = '';
   state.feed.forEach(item => feed.appendChild(renderItem(item)));
 }
 
-function renderItem(item){
+function renderItem(item) {
   const avatar = el('div', { class: 'avatar' }, initials(item.author.name));
   const header = el('div', { class: 'content-header' },
     el('span', { class: 'name' }, item.author.name),
-    el('span', { class: 'handle' }, '@'+item.author.handle),
+    el('span', { class: 'handle' }, '@' + item.author.handle),
     item.author.verified ? el('span', { class: 'badge' }, 'VIP') : null,
-    el('span', { class: 'handle' }, '· '+formatTime(new Date(item.created)))
+    el('span', { class: 'handle' }, '· ' + formatTime(new Date(item.created)))
   );
   const text = el('div', { class: 'text' }, item.text);
   const actions = el('div', { class: 'actions' },
     actionBtn('💬', item.replies?.length || 0, () => replyTo(item.id)),
-    actionBtn('🔁', item.reposts, (e)=> toggleRepost(item, e), item.reposted, 'reposted'),
-    actionBtn('❤️', item.likes, (e)=> toggleLike(item, e), item.liked, 'liked'),
-    actionBtn('📤', '', ()=> shareItem(item))
+    actionBtn('🔁', item.reposts, (e) => toggleRepost(item, e), item.reposted, 'reposted'),
+    actionBtn('❤️', item.likes, (e) => toggleLike(item, e), item.liked, 'liked'),
+    actionBtn('📤', '', () => shareItem(item))
   );
-  const meta = el('div', { class: 'meta' }, item.id < 5 ? 'Top chirp' : 'ID '+item.id);
-  const replies = item.replies?.length ? el('div', { class:'replies' }, ...item.replies.map(r=>renderItem(r))) : null;
+  const meta = el('div', { class: 'meta' }, item.id < 5 ? 'Top chirp' : 'ID ' + item.id);
+  const replies = item.replies?.length ? el('div', { class: 'replies' }, ...item.replies.map(r => renderItem(r))) : null;
   const content = el('div', { class: 'content' }, header, text, actions, meta, replies);
   return el('li', { class: 'feed-item', 'data-id': item.id }, avatar, content);
 }
 
-function actionBtn(icon, count, handler, active=false, activeClass=''){
-  return el('button', { class: active ? activeClass : '', onclick: handler }, icon, count? el('span', {}, count): null);
+function actionBtn(icon, count, handler, active = false, activeClass = '') {
+  return el('button', { class: active ? activeClass : '', onclick: handler }, icon, count ? el('span', {}, count) : null);
 }
 
-function replyTo(id){
-  const parent = state.feed.find(f=>f.id===id);
-  if(!parent) return;
-  openModal('@'+parent.author.handle+' ');
+function replyTo(id) {
+  const parent = state.feed.find(f => f.id === id);
+  if (!parent) return;
+  openModal('@' + parent.author.handle + ' ');
 }
 
-async function toggleLike(item, btn){
+async function toggleLike(item, btn) {
   if (!state.currentUser) return;
-  
+
   try {
     const response = await fetch(`${API_BASE}/posts/${item.id}/like`, {
       method: 'POST',
@@ -95,7 +95,7 @@ async function toggleLike(item, btn){
       },
       body: JSON.stringify({ userId: state.currentUser.id })
     });
-    
+
     if (response.ok) {
       item.liked = !item.liked;
       item.likes += item.liked ? 1 : -1;
@@ -106,9 +106,9 @@ async function toggleLike(item, btn){
   }
 }
 
-async function toggleRepost(item){
+async function toggleRepost(item) {
   if (!state.currentUser) return;
-  
+
   try {
     const response = await fetch(`${API_BASE}/posts/${item.id}/repost`, {
       method: 'POST',
@@ -117,7 +117,7 @@ async function toggleRepost(item){
       },
       body: JSON.stringify({ userId: state.currentUser.id })
     });
-    
+
     if (response.ok) {
       item.reposted = !item.reposted;
       item.reposts += item.reposted ? 1 : -1;
@@ -127,26 +127,26 @@ async function toggleRepost(item){
     console.error('Failed to toggle repost:', error);
   }
 }
-function shareItem(item){
-  navigator.clipboard?.writeText(location.origin+'/?id='+item.id);
+function shareItem(item) {
+  navigator.clipboard?.writeText(location.origin + '/?id=' + item.id);
   alert('Link copied');
 }
 
-async function addPost(text){
+async function addPost(text) {
   if (!state.currentUser) return;
-  
+
   try {
     const response = await fetch(`${API_BASE}/posts`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ 
-        text: text.trim(), 
-        userId: state.currentUser.id 
+      body: JSON.stringify({
+        text: text.trim(),
+        userId: state.currentUser.id
       })
     });
-    
+
     if (response.ok) {
       await loadFeed();
     }
@@ -155,7 +155,7 @@ async function addPost(text){
   }
 }
 
-async function loadCurrentUser(){
+async function loadCurrentUser() {
   try {
     const response = await fetch(`${API_BASE}/users/current`);
     if (response.ok) {
@@ -166,7 +166,7 @@ async function loadCurrentUser(){
   }
 }
 
-async function loadTrends(){
+async function loadTrends() {
   try {
     const response = await fetch(`${API_BASE}/trending`);
     if (response.ok) {
@@ -178,7 +178,7 @@ async function loadTrends(){
   }
 }
 
-async function loadWhoToFollow(){
+async function loadWhoToFollow() {
   try {
     const response = await fetch(`${API_BASE}/users/suggestions`);
     if (response.ok) {
@@ -190,20 +190,20 @@ async function loadWhoToFollow(){
   }
 }
 
-function renderTrends(){
+function renderTrends() {
   const ul = document.getElementById('trends');
   ul.innerHTML = '';
-  state.trends.forEach(t=> ul.appendChild(el('li', {}, el('a', { href:'#' }, t.tag), el('div', { class:'meta' }, t.count+' posts'))));
+  state.trends.forEach(t => ul.appendChild(el('li', {}, el('a', { href: '#' }, t.tag), el('div', { class: 'meta' }, t.count + ' posts'))));
 }
-function renderWhoToFollow(){
+function renderWhoToFollow() {
   const ul = document.getElementById('whoToFollow');
-  ul.innerHTML='';
-  state.whoToFollow.forEach(p=> ul.appendChild(el('li', {},
-    el('div', { class:'content-header' }, el('span', { class:'name' }, p.name), el('span', { class:'handle' }, '@'+p.handle)),
-    el('button', { class:'follow-btn', onclick: ()=> toggleFollow(p) }, p.followed? 'Following' : 'Follow')
+  ul.innerHTML = '';
+  state.whoToFollow.forEach(p => ul.appendChild(el('li', {},
+    el('div', { class: 'content-header' }, el('span', { class: 'name' }, p.name), el('span', { class: 'handle' }, '@' + p.handle)),
+    el('button', { class: 'follow-btn', onclick: () => toggleFollow(p) }, p.followed ? 'Following' : 'Follow')
   )));
 }
-function toggleFollow(p){
+function toggleFollow(p) {
   p.followed = !p.followed;
   renderWhoToFollow();
 }
@@ -214,20 +214,20 @@ const composer = document.getElementById('composer');
 const composerText = document.getElementById('composerText');
 const charCount = document.getElementById('charCount');
 const sendBtn = document.getElementById('sendBtn');
-composeBtn.addEventListener('click', ()=> {
+composeBtn.addEventListener('click', () => {
   composer.classList.toggle('hidden');
-  if(!composer.classList.contains('hidden')) composerText.focus();
+  if (!composer.classList.contains('hidden')) composerText.focus();
 });
-composerText.addEventListener('input', ()=> {
+composerText.addEventListener('input', () => {
   const remaining = 280 - composerText.value.length;
   charCount.textContent = remaining;
   sendBtn.disabled = !composerText.value.trim();
 });
-sendBtn.addEventListener('click', ()=> {
+sendBtn.addEventListener('click', () => {
   addPost(composerText.value.trim());
-  composerText.value='';
-  sendBtn.disabled=true;
-  charCount.textContent=280;
+  composerText.value = '';
+  sendBtn.disabled = true;
+  charCount.textContent = 280;
   composer.classList.add('hidden');
 });
 
@@ -238,32 +238,32 @@ const modalComposerText = document.getElementById('modalComposerText');
 const modalCharCount = document.getElementById('modalCharCount');
 const modalSendBtn = document.getElementById('modalSendBtn');
 
-function openModal(prefill=''){
+function openModal(prefill = '') {
   modal.classList.remove('hidden');
   modalComposerText.value = prefill;
   modalComposerText.focus();
   updateModalCount();
 }
-function closeModal(){ modal.classList.add('hidden'); }
+function closeModal() { modal.classList.add('hidden'); }
 closeModalBtn.addEventListener('click', closeModal);
 modalComposerText.addEventListener('input', updateModalCount);
-function updateModalCount(){
+function updateModalCount() {
   const remaining = 280 - modalComposerText.value.length;
   modalCharCount.textContent = remaining;
   modalSendBtn.disabled = !modalComposerText.value.trim();
 }
-modalSendBtn.addEventListener('click', ()=> {
+modalSendBtn.addEventListener('click', () => {
   addPost(modalComposerText.value.trim());
-  modalComposerText.value='';
+  modalComposerText.value = '';
   updateModalCount();
   closeModal();
 });
-window.addEventListener('keydown', e=> { if(e.key==='Escape') closeModal(); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 // Nav switching (placeholder views)
 const navBtns = document.querySelectorAll('.nav-btn');
-navBtns.forEach(b=> b.addEventListener('click', ()=> {
-  navBtns.forEach(n=> n.classList.remove('active'));
+navBtns.forEach(b => b.addEventListener('click', () => {
+  navBtns.forEach(n => n.classList.remove('active'));
   b.classList.add('active');
   document.getElementById('viewTitle').textContent = b.textContent || b.dataset.view;
 }));

@@ -29,9 +29,9 @@ static async Task InitializeDatabase(IServiceProvider services)
 {
     using var scope = services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<TweeterContext>();
-    
+
     await context.Database.EnsureCreatedAsync();
-    
+
     if (!context.Users.Any())
     {
         await SeedData(context);
