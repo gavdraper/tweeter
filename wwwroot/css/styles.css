@@ -234,9 +234,6 @@ button.full {
   color: var(--accent);
 }
 
-.actions button.liked {
-  color: var(--danger);
-}
 
 .actions button.reposted {
   color: var(--success);

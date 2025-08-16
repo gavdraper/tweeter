@@ -19,10 +19,8 @@ public class Post
     public virtual Post? Parent { get; set; }
     
     public virtual ICollection<Post> Replies { get; set; } = new List<Post>();
-    public virtual ICollection<PostLike> Likes { get; set; } = new List<PostLike>();
     public virtual ICollection<PostRepost> Reposts { get; set; } = new List<PostRepost>();
     
-    public int LikeCount => Likes.Count;
     public int RepostCount => Reposts.Count;
     public int ReplyCount => Replies.Count;
 }

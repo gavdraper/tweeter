@@ -8,7 +8,6 @@ public class PostDto
     public string AuthorName { get; set; } = string.Empty;
     public string AuthorHandle { get; set; } = string.Empty;
     public bool AuthorVerified { get; set; }
-    public int Likes { get; set; }
     public int Reposts { get; set; }
     public int Replies { get; set; }
 }

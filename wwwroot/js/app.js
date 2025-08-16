@@ -65,7 +65,6 @@ function renderItem(item) {
   const actions = el('div', { class: 'actions' },
     actionBtn('💬', item.replies?.length || 0, () => replyTo(item.id)),
     actionBtn('🔁', item.reposts, (e) => toggleRepost(item, e), item.reposted, 'reposted'),
-    actionBtn('❤️', item.likes, (e) => toggleLike(item, e), item.liked, 'liked'),
     actionBtn('📤', '', () => shareItem(item))
   );
   const meta = el('div', { class: 'meta' }, item.id < 5 ? 'Top chirp' : 'ID ' + item.id);
@@ -84,27 +83,6 @@ function replyTo(id) {
   openModal('@' + parent.author.handle + ' ');
 }
 
-async function toggleLike(item, btn) {
-  if (!state.currentUser) return;
-
-  try {
-    const response = await fetch(`${API_BASE}/posts/${item.id}/like`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ userId: state.currentUser.id })
-    });
-
-    if (response.ok) {
-      item.liked = !item.liked;
-      item.likes += item.liked ? 1 : -1;
-      renderFeed();
-    }
-  } catch (error) {
-    console.error('Failed to toggle like:', error);
-  }
-}
 
 async function toggleRepost(item) {
   if (!state.currentUser) return;

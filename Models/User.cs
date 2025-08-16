@@ -17,6 +17,5 @@ public class User
     public bool Verified { get; set; }
     
     public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
-    public virtual ICollection<PostLike> Likes { get; set; } = new List<PostLike>();
     public virtual ICollection<PostRepost> Reposts { get; set; } = new List<PostRepost>();
 }

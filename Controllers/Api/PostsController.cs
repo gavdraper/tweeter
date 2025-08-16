@@ -24,7 +24,6 @@ public class PostsController : ControllerBase
         var posts = await _context.Posts
             .Where(p => p.ParentId == null)
             .Include(p => p.Author)
-            .Include(p => p.Likes)
             .Include(p => p.Reposts)
             .Include(p => p.Replies)
             .OrderByDescending(p => p.Created)
@@ -41,10 +40,8 @@ public class PostsController : ControllerBase
                 p.Author.Verified
             },
             p.Created,
-            Likes = p.Likes.Count,
             Reposts = p.Reposts.Count,
             Replies = new object[0],
-            Liked = false,
             Reposted = false
         });
 
@@ -98,7 +95,6 @@ public class PostsController : ControllerBase
     {
         var post = await _context.Posts
             .Include(p => p.Author)
-            .Include(p => p.Likes)
             .Include(p => p.Reposts)
             .Include(p => p.Replies)
                 .ThenInclude(r => r.Author)
@@ -120,42 +116,12 @@ public class PostsController : ControllerBase
                 post.Author.Verified
             },
             post.Created,
-            Likes = post.Likes.Count,
             Reposts = post.Reposts.Count,
             Replies = new object[0],
-            Liked = false,
             Reposted = false
         });
     }
 
-    [HttpPost("{id}/like")]
-    public async Task<IActionResult> ToggleLike(int id, [FromBody] UserActionRequest request)
-    {
-        var post = await _context.Posts.FindAsync(id);
-        if (post == null)
-        {
-            return NotFound();
-        }
-
-        var existingLike = await _context.PostLikes
-            .FirstOrDefaultAsync(l => l.PostId == id && l.UserId == request.UserId);
-
-        if (existingLike != null)
-        {
-            _context.PostLikes.Remove(existingLike);
-        }
-        else
-        {
-            _context.PostLikes.Add(new PostLike
-            {
-                PostId = id,
-                UserId = request.UserId
-            });
-        }
-
-        await _context.SaveChangesAsync();
-        return Ok();
-    }
 
     [HttpPost("{id}/repost")]
     public async Task<IActionResult> ToggleRepost(int id, [FromBody] UserActionRequest request)

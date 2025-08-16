@@ -12,7 +12,6 @@ public class TweeterContext : DbContext
 
     public DbSet<User> Users { get; set; }
     public DbSet<Post> Posts { get; set; }
-    public DbSet<PostLike> PostLikes { get; set; }
     public DbSet<PostRepost> PostReposts { get; set; }
     public DbSet<TrendingTag> TrendingTags { get; set; }
 
@@ -36,20 +35,6 @@ public class TweeterContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<PostLike>(entity =>
-        {
-            entity.HasOne(d => d.Post)
-                .WithMany(p => p.Likes)
-                .HasForeignKey(d => d.PostId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasOne(d => d.User)
-                .WithMany(p => p.Likes)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasIndex(e => new { e.PostId, e.UserId }).IsUnique();
-        });
 
         modelBuilder.Entity<PostRepost>(entity =>
         {
