@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tweeter.Data;
 using Tweeter.Models;
-using Tweeter.Models.DTOs;
 using Tweeter.Models.Requests;
 
 namespace Tweeter.Controllers.Api;
@@ -21,13 +20,13 @@ public class PostsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<object>>> GetPosts()
     {
-        var posts = await _context.Posts
+        var posts = _context.Posts
             .Where(p => p.ParentId == null)
             .Include(p => p.Author)
             .Include(p => p.Reposts)
             .Include(p => p.Replies)
             .OrderByDescending(p => p.Created)
-            .ToListAsync();
+            .ToListAsync().Result;
 
         var result = posts.Select(p => new
         {
@@ -60,17 +59,13 @@ public class PostsController : ControllerBase
         try
         {
             await _context.Database.ExecuteSqlRawAsync(sql);
-
-            // Get the created post - also vulnerable to injection
             var getPostSql = $"SELECT * FROM Posts WHERE AuthorId = {request.UserId} ORDER BY Created DESC LIMIT 1";
             var posts = await _context.Posts.FromSqlRaw(getPostSql).Include(p => p.Author).ToListAsync();
             var post = posts.FirstOrDefault();
-
             if (post == null)
             {
                 return BadRequest("Failed to create post");
             }
-
             return CreatedAtAction(nameof(GetPost), new { id = post.Id }, new
             {
                 post.Id,

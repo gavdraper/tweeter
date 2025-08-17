@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tweeter.Data;
-using Tweeter.Models.DTOs;
 
 namespace Tweeter.Controllers.Api;
 
@@ -44,7 +43,7 @@ public class UsersController : ControllerBase
             .OrderBy(u => u.Name)
             .Take(10)
             .ToListAsync();
-        
+
         var result = users.Select(u => new
         {
             u.Id,
