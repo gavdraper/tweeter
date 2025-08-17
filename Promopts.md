@@ -1,15 +1,10 @@
-# Refine
+BE IN THE DIRECTORY ABOVE TWEETER
 
-Split this feature into multiple user stories. 
+# Like
 
-"
-When new posts come in show a prompt at the top of the screen telling the user new posts are ready. The notification should say press "." to refresh. When the user presses "." the new tweets load in and the page scrolls to the top so they are on screen.
-"
+Create a new User story for "Implementing Like Functionality". store in in LikeStory.Md. Use the QA Agent. 
 
-Include
-* Given When Then story format
-* Positive and Negative Acceptance Criteria
+Create a plan for @LikeStory.md     
 
-Once done the ticket should comply with the definition of ready.
+Implement step 1.1 in @agent-tmp/like-functionality-implementation-plan-2025-08-16.md , if build and all tests pass then mark the item as complete  
 
-Create each story in a temp markdown file then create the issue in github under the Tweeter repo by passing the md file into gh cli
