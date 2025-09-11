@@ -23,6 +23,12 @@ I'm seeing SQL queries to get posts hanging on the SQL Server and being left in 
 
 Highlight potential changes that have introduced this behavior. Focus on the fact this is a new issue and check commits/changes in this timeframe
 
+
+*********
+The repost functionality does not work, use Playwright MCP to investigate
+
+Now show me the code to codify that Playwright journey to prove I dont break this again
+
 # Review
 
 Run a full review of the Tweeter application, Think Hard and highlight areas of concern/improvements.
