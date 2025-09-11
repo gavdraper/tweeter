@@ -88,7 +88,7 @@ async function toggleRepost(item) {
   if (!state.currentUser) return;
 
   try {
-    const response = await fetch(`${API_BASE}/posts/${item.id}/repost`, {
+    const response = await fetch(`${API_BASE}/posts/${item.id}/repost-action`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -100,9 +100,16 @@ async function toggleRepost(item) {
       item.reposted = !item.reposted;
       item.reposts += item.reposted ? 1 : -1;
       renderFeed();
+    } else {
+      console.error('Repost failed with status:', response.status);
+      const errorData = await response.json();
+      console.error('Error details:', errorData.message.details.reason);
     }
   } catch (error) {
     console.error('Failed to toggle repost:', error);
+    if (error.networkError && error.networkError.details) {
+      console.log('Network error details:', error.networkError.details.code);
+    }
   }
 }
 function shareItem(item) {
