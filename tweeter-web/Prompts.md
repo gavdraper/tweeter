@@ -26,3 +26,6 @@ Highlight potential changes that have introduced this behavior. Focus on the fac
 # Review
 
 Run a full review of the Tweeter application, Think Hard and highlight areas of concern/improvements.
+
+Playwright...
+claude mcp add playwright npx '@playwright/mcp@latest'
